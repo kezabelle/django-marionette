@@ -34,7 +34,7 @@ class Resource(object):
         data = self.get_request_data(request)
 
         resp = self.execute(func, data)
-        jsonified_resp = json.dumps(resp, cls=DjangoJSONEncoder)
+        jsonified_resp = self.to_json(resp)
 
         return HttpResponse(jsonified_resp, content_type='application/json')
 
@@ -48,8 +48,16 @@ class Resource(object):
         if c_type in ['application/json', 'text/json']:
             if not self.request.body:
                 return default
-            return json.loads(self.request.body)
+            return self.from_json(self.request.body)
         return self.request.POST
+        
+    def from_json(self, data):
+        '''Hook for replacing the default json module'''
+        return json.loads(data)
+    
+    def to_json(self, data):
+        '''Hook for replacing the default json module'''
+        return json.dumps(data, cls=DjangoJSONEncoder)
 
 
 def rpc(view):
